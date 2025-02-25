@@ -74,6 +74,6 @@ async def upload_file(file: UploadFile = File(...)):
         )
 
     # Clean up uploaded files after processing
-    # os.remove(file_path)
+    os.remove(file_path)
     
     return JSONResponse(content=result)
