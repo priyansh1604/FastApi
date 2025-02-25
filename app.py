@@ -12,7 +12,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can replace '*' with specific domains if needed
+    allow_origins=["https://oce-cidsqp5fs-anshs-projects-ef3a3953.vercel.app"],  # You can replace '*' with specific domains if needed
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
