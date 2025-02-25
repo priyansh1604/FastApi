@@ -6,8 +6,17 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
 from pdf2image import convert_from_path
 import tempfile
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # You can replace '*' with specific domains if needed
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods
+    allow_headers=["*"],  # Allow all headers
+)
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
