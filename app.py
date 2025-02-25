@@ -29,7 +29,7 @@ def extract_text_from_image(image_path):
     
     # Join extracted lines into a single block of text
     text = " ".join(results)
-    print("Extracted Text:", text)
+    # print("Extracted Text:", text)
     
     pan_regex = r"[A-Z]{5}[0-9]{4}[A-Z]{1}"
     pan_number = re.findall(pan_regex, text)
@@ -57,7 +57,7 @@ async def upload_file(file: UploadFile = File(...)):
 
         for page_num, page in enumerate(pages):
             image_path = f"{UPLOAD_FOLDER}/page_{page_num}.jpg"
-            page.save(image_path, "JPEG")
+            # page.save(image_path, "JPEG")
             result = extract_text_from_image(image_path)
             all_text += result["extracted_text"] + "\n"
             if result["pan_number"] != "PAN number not found":
