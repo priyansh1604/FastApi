@@ -1,6 +1,5 @@
 import os
 import shutil
-import cv2
 import easyocr
 import re
 from fastapi import FastAPI, File, UploadFile
@@ -18,6 +17,8 @@ reader = easyocr.Reader(["en"])
 
 # Function to extract text and PAN number from an image
 def extract_text_from_image(image_path):
+    import cv2
+    
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gray = cv2.resize(gray, None, fx=1.5, fy=1.5)
