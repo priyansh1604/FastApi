@@ -13,7 +13,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://oce-cidsqp5fs-anshs-projects-ef3a3953.vercel.app"],  # You can replace '*' with specific domains if needed
+    allow_origins=["*"],  # You can replace '*' with specific domains if needed
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all headers
@@ -45,40 +45,43 @@ def extract_text_from_image(image_bytes):
         "extracted_text": text,
         "pan_number": pan_number[0] if pan_number else "PAN number not found"
     }
+@app.get("/test")
+async def hello():
+    return JSONResponse("heyyy")
 
-@app.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
-    # Read the file content into memory
-    file_content = await file.read()
+# @app.post("/upload/")
+# async def upload_file(file: UploadFile = File(...)):
+#     # Read the file content into memory
+#     file_content = await file.read()
 
-    if file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
-        # Process image from the in-memory file content
-        result = extract_text_from_image(file_content)
-    elif file.filename.lower().endswith(".pdf"):
-        # Convert PDF to images in-memory and process each page
-        pages = convert_from_bytes(file_content)
-        all_text = ""
-        pan_numbers = set()
+#     if file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
+#         # Process image from the in-memory file content
+#         result = extract_text_from_image(file_content)
+#     elif file.filename.lower().endswith(".pdf"):
+#         # Convert PDF to images in-memory and process each page
+#         pages = convert_from_bytes(file_content)
+#         all_text = ""
+#         pan_numbers = set()
 
-        for page_num, page in enumerate(pages):
-            # Convert PIL image to bytes for OCR processing
-            image_bytes = io.BytesIO()
-            page.save(image_bytes, format='JPEG')
-            image_bytes.seek(0)
-            result = extract_text_from_image(image_bytes.read())
-            all_text += result["extracted_text"] + "\n"
-            if result["pan_number"] != "PAN number not found":
-                pan_numbers.add(result["pan_number"])
-            truncated_text = all_text[:1000]
+#         for page_num, page in enumerate(pages):
+#             # Convert PIL image to bytes for OCR processing
+#             image_bytes = io.BytesIO()
+#             page.save(image_bytes, format='JPEG')
+#             image_bytes.seek(0)
+#             result = extract_text_from_image(image_bytes.read())
+#             all_text += result["extracted_text"] + "\n"
+#             if result["pan_number"] != "PAN number not found":
+#                 pan_numbers.add(result["pan_number"])
+#             truncated_text = all_text[:1000]
 
-        result = {
-            "extracted_text": truncated_text,
-            "pan_number": list(pan_numbers) if pan_numbers else "PAN number not found"
-        }
-    else:
-        return JSONResponse(
-            content={"error": "Unsupported file type. Please upload a PNG, JPG, or PDF."},
-            status_code=400
-        )
+#         result = {
+#             "extracted_text": truncated_text,
+#             "pan_number": list(pan_numbers) if pan_numbers else "PAN number not found"
+#         }
+#     else:
+#         return JSONResponse(
+#             content={"error": "Unsupported file type. Please upload a PNG, JPG, or PDF."},
+#             status_code=400
+#         )
 
-    return JSONResponse(content=result)
+#     return JSONResponse(content=result)
