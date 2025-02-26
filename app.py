@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 # Initialize EasyOCR reader
-reader = easyocr.Reader(["en"])
+reader = easyocr.Reader(['en'], gpu=False)
 
 # Function to extract text and PAN number from an image
 def extract_text_from_image(image_bytes):
