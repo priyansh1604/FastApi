@@ -69,9 +69,10 @@ async def upload_file(file: UploadFile = File(...)):
             all_text += result["extracted_text"] + "\n"
             if result["pan_number"] != "PAN number not found":
                 pan_numbers.add(result["pan_number"])
+            truncated_text = all_text[:1000]
 
         result = {
-            "extracted_text": all_text,
+            "extracted_text": truncated_text,
             "pan_number": list(pan_numbers) if pan_numbers else "PAN number not found"
         }
     else:
