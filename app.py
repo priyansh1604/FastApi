@@ -1,12 +1,13 @@
-import os
-import shutil
+import io
 import easyocr
 import re
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import JSONResponse
-from pdf2image import convert_from_path
-import tempfile
+from pdf2image import convert_from_bytes
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
+import numpy as np
+import cv2
 
 app = FastAPI()
 
@@ -18,19 +19,17 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers
 )
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 # Initialize EasyOCR reader
 reader = easyocr.Reader(["en"])
 
 # Function to extract text and PAN number from an image
-def extract_text_from_image(image_path):
-    import cv2
+def extract_text_from_image(image_bytes):
+    # Convert image bytes to OpenCV format
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    image = cv2.imdecode(nparr, cv2.IMREAD_GRAYSCALE)
     
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.resize(gray, None, fx=1.5, fy=1.5)
+    # Preprocess the image
+    gray = cv2.resize(image, None, fx=1.5, fy=1.5)
     gray = cv2.bilateralFilter(gray, 11, 17, 17)
     
     # Extract text using EasyOCR
@@ -38,7 +37,6 @@ def extract_text_from_image(image_path):
     
     # Join extracted lines into a single block of text
     text = " ".join(results)
-    # print("Extracted Text:", text)
     
     pan_regex = r"[A-Z]{5}[0-9]{4}[A-Z]{1}"
     pan_number = re.findall(pan_regex, text)
@@ -50,24 +48,24 @@ def extract_text_from_image(image_path):
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
-    # Save the uploaded file
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    with open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    # Read the file content into memory
+    file_content = await file.read()
 
     if file.filename.lower().endswith((".png", ".jpg", ".jpeg")):
-        # Process image
-        result = extract_text_from_image(file_path)
+        # Process image from the in-memory file content
+        result = extract_text_from_image(file_content)
     elif file.filename.lower().endswith(".pdf"):
-        # Convert PDF to images and process each page
-        pages = convert_from_path(file_path)
+        # Convert PDF to images in-memory and process each page
+        pages = convert_from_bytes(file_content)
         all_text = ""
         pan_numbers = set()
 
         for page_num, page in enumerate(pages):
-            image_path = f"{UPLOAD_FOLDER}/page_{page_num}.jpg"
-            # page.save(image_path, "JPEG")
-            result = extract_text_from_image(image_path)
+            # Convert PIL image to bytes for OCR processing
+            image_bytes = io.BytesIO()
+            page.save(image_bytes, format='JPEG')
+            image_bytes.seek(0)
+            result = extract_text_from_image(image_bytes.read())
             all_text += result["extracted_text"] + "\n"
             if result["pan_number"] != "PAN number not found":
                 pan_numbers.add(result["pan_number"])
@@ -82,7 +80,4 @@ async def upload_file(file: UploadFile = File(...)):
             status_code=400
         )
 
-    # Clean up uploaded files after processing
-    os.remove(file_path)
-    
     return JSONResponse(content=result)
