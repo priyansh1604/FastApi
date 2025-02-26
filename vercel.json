@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
       {
-        "src": "app.py",  
+        "src": "api/app.py",  
         "use": "@vercel/python",
         "config": {
         "maxDuration": 60, 
@@ -12,8 +12,8 @@
     ],
     "routes": [
       {
-        "src": "/upload/",
-        "dest": "app.py"  
+        "src": "/(.*)",
+        "dest": "api/app.py"  
       }
     ]
   }

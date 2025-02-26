@@ -47,7 +47,7 @@ app.add_middleware(
 #     }
 @app.get("/test")
 async def hello():
-    return JSONResponse("heyyy")
+   return JSONResponse(content={"message": "heyyy"})
 
 # @app.post("/upload/")
 # async def upload_file(file: UploadFile = File(...)):
